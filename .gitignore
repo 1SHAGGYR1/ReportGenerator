@@ -1,0 +1,10 @@
+.idea
+.vs
+.DS_Store
+.temp
+crescore-adminsdk.json
+adminsdk.json
+kreya
+coverage
+.tmp
+*.docx
