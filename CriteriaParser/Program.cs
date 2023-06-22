@@ -5,10 +5,10 @@ using System.Text.RegularExpressions;
 using System.Text.Unicode;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using MyDocumentParses;
+using Shared;
 
-const string inputFileName = @"D:\Storage\Source\RiderProjects\CriteriaParser\активность и участие.docx";
-const string outputFileName = @"D:\Storage\Source\RiderProjects\CriteriaParser\JsonView.json"; 
+const string inputFileName = @"C:\Users\merkulov.e\Source\Playground\ReportGenerator\CriteriaParser\активность и участие.docx";
+const string outputFileName = @"C:\Users\merkulov.e\Source\Playground\ReportGenerator\CriteriaParser\JsonView.json"; 
 
 using var myDocument = WordprocessingDocument.Open(inputFileName, false);
 var documentBody = myDocument.MainDocumentPart!.Document.Body;
@@ -27,7 +27,7 @@ var criteriaDictionary = documentBody!.ChildElements
 
 foreach (var c in criteriaDictionary)
 {
-    if (c.Key.Length > 5)
+    if (c.Key.Length > 4)
     {
         var parentKey = c.Key[..^1];
         if (criteriaDictionary.TryGetValue(parentKey, out var parent))
@@ -42,7 +42,7 @@ foreach (var c in criteriaDictionary)
     }
 }
 
-var result = criteriaDictionary.Where(item => item.Key.Length == 5).ToList();
+var result = criteriaDictionary.Values.Where(item => item.Key.Length == 4).ToList();
 var options = new JsonSerializerOptions
 {
     Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),

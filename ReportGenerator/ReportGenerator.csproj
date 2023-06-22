@@ -5,17 +5,10 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
-        <RootNamespace>CriteriaParser</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="DocumentFormat.OpenXml" Version="3.0.0-ci0083" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Content Include="..\JsonView.json">
-        <Link>JsonView.json</Link>
-      </Content>
     </ItemGroup>
 
     <ItemGroup>
