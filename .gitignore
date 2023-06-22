@@ -8,3 +8,4 @@ kreya
 coverage
 .tmp
 *.docx
+*.json
