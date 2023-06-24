@@ -2,6 +2,7 @@
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using ReportGenerator.Models;
 using Shared;
 
 namespace ReportGenerator;
@@ -10,9 +11,10 @@ internal class Program
 {
     private const string DatesFormat = "dd.MM.yyyy";
     
+    //TODO: add ability to continue filling existing document
     public static void Main(string[] args)
     {
-        var criteriaFilePath = @"C:\Users\merkulov.e\Source\Playground\ReportGenerator\CriteriaParser\JsonView.json";
+        var unitsFilePath = @"C:\Users\merkulov.e\Source\Playground\ReportGenerator\CriteriaParser\JsonView.json";
         var outputFileDirectory = string.Join('\\', Directory.GetCurrentDirectory().Split('\\')[..^3]);
         if (args.Any())
         {
@@ -20,8 +22,8 @@ internal class Program
             {
                 switch (argument)
                 {
-                    case "criteriaFilePath":
-                        criteriaFilePath = argument;
+                    case "unitsFilePath":
+                        unitsFilePath = argument;
                         break;
                     case "outputFileDirectory":
                         outputFileDirectory = argument;
@@ -38,14 +40,14 @@ internal class Program
         Console.WriteLine($"Создан документ {outputFileName}");
 
         var body = CreateDocumentBody(createdDocument);
+        AddSectionProperties(body);
         AddChildInfo(body, info.ChildInfo);
         var table = CreateReportTable(body);
-        // var criteriaList = ParseCriteriaList(criteriaFilePath);
-        Console.WriteLine("Приступаем к заполнению критериев");
-        AddSectionProperties(body);
+        var unitsList = ParseUnitsList(unitsFilePath);
+        Console.WriteLine("Приступаем к заполнению.");
+        FillTable(unitsList, table);
     }
-
-
+    
     private static DocumentInfo InputDocumentInfo()
     {
         var result = new DocumentInfo();
@@ -215,29 +217,212 @@ internal class Program
                         new Run(
                             new RunProperties(
                                 new Bold(),
-                                new FontSize{Val = new StringValue("32")},
-                                new FontSizeComplexScript{Val = new StringValue("32")}),
+                                new FontSize{Val = new StringValue(DocumentMetrics.Fonts.HeaderFontSize)},
+                                new FontSizeComplexScript{Val = new StringValue(DocumentMetrics.Fonts.HeaderFontSize)}),
                             new Text("Таблица критериев"))))));
         body.AppendChild(table);
 
         return table;
     }
 
-    private static List<Criteria> ParseCriteriaList(string path)
+    private static List<Unit> ParseUnitsList(string path)
     {
         try
         {
             var jsonString = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<List<Criteria>>(jsonString)!;
+            return JsonSerializer.Deserialize<List<Unit>>(jsonString)!;
         }
         catch (Exception e)
         {
-            Console.WriteLine("Ошибка десериализации критериев");
+            Console.WriteLine("Ошибка десериализации разделов:");
             Console.WriteLine(e);
             throw;
         }
     }
     
+    private static void FillTable(List<Unit> unitList, Table table)
+    {
+        try
+        {
+            foreach (var unit in unitList)
+            {
+                if (!InputUnit(unit)) continue;
+                AddUnitRow(table, unit);
+
+                foreach (var section in unit.SectionList)
+                {
+                    if (!InputSection(section)) continue;
+                    AddSectionRow(table, section);
+
+                    foreach (var criterion in section.CriterionList)
+                    {
+                        var criterionAnswer = InputCriterionAnswer(criterion);
+                        Console.WriteLine();
+                        AddCriterionRow(table, criterion, criterionAnswer);
+                    }
+                }
+
+                foreach (var unSectionedCriterion in unit.UnSectionedCriterionList)
+                {
+                    var criterionAnswer = InputCriterionAnswer(unSectionedCriterion);
+                    Console.WriteLine();
+                    AddCriterionRow(table, unSectionedCriterion, criterionAnswer);
+                }
+            }
+        }
+        catch (FinishFillingException)
+        {
+        }
+        finally
+        {
+            Console.WriteLine("Заполнение докунмента закончено.");
+        }
+    }
+    
+    private static bool InputUnit(Unit unit)
+    {
+        Console.WriteLine(OutputStrings.StartFillingPartMessage, "раздела", unit.Text);
+        bool? inputUnit;
+        do
+        {
+            Console.WriteLine(OutputStrings.SkipOption, "раздела");
+            Console.WriteLine(OutputStrings.FinishOption);
+            var input = Console.ReadKey();
+            inputUnit = input.Key switch
+            {
+                ConsoleKey.D0 => false,
+                ConsoleKey.Enter => true,
+                ConsoleKey.Escape => throw new FinishFillingException(),
+                _ => null
+            };
+            Console.WriteLine();
+        } while (!inputUnit.HasValue);
+
+        return inputUnit.Value;
+    }
+
+    private static bool InputSection(Section section)
+    {
+        Console.WriteLine(OutputStrings.StartFillingPartMessage, "секции", section.Text);
+        bool? inputUnit;
+        do
+        {
+            Console.WriteLine(OutputStrings.SkipOption, "секции");
+            Console.WriteLine(OutputStrings.FinishOption);
+            var input = Console.ReadKey();
+            inputUnit = input.Key switch
+            {
+                ConsoleKey.D0 => false,
+                ConsoleKey.Enter => true,
+                ConsoleKey.Escape => throw new FinishFillingException(),
+                _ => null
+            };
+            Console.WriteLine();
+        } while (!inputUnit.HasValue);
+
+        return inputUnit.Value;;
+    }
+
+    private static void AddUnitRow(Table table, Unit unit)
+    {
+        table.AppendChild(new TableRow(
+            new TableCell(
+                new TableCellProperties(
+                    new TableCellWidth {Width = DocumentMetrics.TableWidth},
+                    new GridSpan {Val = new Int32Value(2)}),
+                new Paragraph(
+                    new ParagraphProperties(
+                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Center)}),
+                    new Run(
+                        new RunProperties(
+                            new Bold(),
+                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.UnitFontSize)},
+                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.UnitFontSize)}),
+                        new Text(unit.Text))))));
+    }
+
+    private static void AddSectionRow(Table table, Section section)
+    {
+        table.AppendChild(new TableRow(
+            new TableCell(
+                new TableCellProperties(
+                    new TableCellWidth {Width = DocumentMetrics.TableWidth},
+                    new GridSpan {Val = new Int32Value(2)}),
+                new Paragraph(
+                    new ParagraphProperties(
+                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Center)}),
+                    new Run(
+                        new RunProperties(
+                            new Italic(),
+                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.SectionFontSize)},
+                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.SectionFontSize)}),
+                        new Text(section.Text))))));
+    }
+
+    private static string InputCriterionAnswer(Criterion criterion)
+    {
+        const string criterionAnswerTemplate =
+            $"""
+                Введите уровень затруднений:
+                    1 - {OutputStrings.NoDifficulties}
+                    2 - {OutputStrings.SmallDifficulties}
+                    3 - {OutputStrings.MiddleDifficulties}
+                    4 - {OutputStrings.HardDifficulties}
+                    5 - {OutputStrings.TotalDifficulties}
+            """;
+        string criterionAnswer;
+        do
+        {
+            Console.WriteLine(OutputStrings.StartFillingPartMessage, "критертия", criterion.Text);
+            Console.WriteLine(criterionAnswerTemplate);
+            Console.WriteLine(OutputStrings.FinishOption);
+            var input = Console.ReadKey();
+            criterionAnswer = input.Key switch
+            {
+                ConsoleKey.D1 => OutputStrings.NoDifficulties,
+                ConsoleKey.D2 => OutputStrings.SmallDifficulties,
+                ConsoleKey.D3 => OutputStrings.MiddleDifficulties,
+                ConsoleKey.D4 => OutputStrings.HardDifficulties,
+                ConsoleKey.D5 => OutputStrings.TotalDifficulties,
+                ConsoleKey.Escape => throw new FinishFillingException(),
+                _ => null
+            };
+            if (criterionAnswer is null)
+            {
+                Console.WriteLine(OutputStrings.WrongInputMessage);
+            }
+        } while (string.IsNullOrEmpty(criterionAnswer));
+
+        return criterionAnswer;
+    }
+    
+    private static void AddCriterionRow(Table table, Criterion criterion, string criterionAnswer)
+    {
+        table.AppendChild(new TableRow(
+            new TableCell(
+                new TableCellProperties(
+                    new TableCellWidth {Width = DocumentMetrics.TableCellWidth}),
+                new Paragraph(
+                    new ParagraphProperties(
+                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
+                    new Run(
+                        new RunProperties(
+                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
+                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
+                        new Text(criterion.Text)))),
+            new TableCell(
+                new TableCellProperties(
+                    new TableCellWidth {Width = DocumentMetrics.TableCellWidth}),
+                new Paragraph(
+                    new ParagraphProperties(
+                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
+                    new Run(
+                        new RunProperties(
+                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
+                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
+                        new Text(criterionAnswer))))));
+    }
+
     private static void AddSectionProperties(Body body)
     {
         body.AppendChild(new SectionProperties(

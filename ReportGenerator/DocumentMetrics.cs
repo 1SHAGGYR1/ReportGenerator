@@ -1,10 +1,18 @@
-﻿namespace ReportGenerator;
+﻿namespace ReportGenerator.Models;
 
 public static class DocumentMetrics
 {
     public const uint PageSize = 16838;
     public const string TableWidth = "15614";
     public const string TableCellWidth = "7807";
+    
+    public class Fonts
+    {
+        public const string HeaderFontSize = "32";
+        public const string UnitFontSize = "27";
+        public const string SectionFontSize = "22";
+        public const string CriterionFontSize = "17";
+    }
 
     public class PageMargins
     {

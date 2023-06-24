@@ -1,4 +1,4 @@
-﻿namespace ReportGenerator;
+﻿namespace ReportGenerator.Models;
 
 public class ChildInfo
 {
