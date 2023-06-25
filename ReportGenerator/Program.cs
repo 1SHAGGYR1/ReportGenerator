@@ -41,7 +41,7 @@ internal class Program
 
         var body = CreateDocumentBody(createdDocument);
         AddSectionProperties(body);
-        AddChildInfo(body, info.ChildInfo);
+        AddChildInfo(body, info);
         var table = CreateReportTable(body);
         var unitsList = ParseUnitsList(unitsFilePath);
         Console.WriteLine("Приступаем к заполнению.");
@@ -125,7 +125,7 @@ internal class Program
         return result;
     }
 
-    private static void AddChildInfo(Body body, ChildInfo info)
+    private static void AddChildInfo(Body body, DocumentInfo info)
     {
         body.AppendChild(
             new Paragraph(
@@ -138,7 +138,7 @@ internal class Program
                         })),
                 new Run(
                     new RunProperties(new Bold()),
-                    new Text($"{string.Concat(info.LastName[0].ToString().ToUpper(), info.LastName.AsSpan(1))} {string.Concat(info.FirstName[0].ToString().ToUpper(), info.FirstName.AsSpan(1))}"))
+                    new Text($"{string.Concat(info.ChildInfo.LastName[0].ToString().ToUpper(), info.ChildInfo.LastName.AsSpan(1))} {string.Concat(info.ChildInfo.FirstName[0].ToString().ToUpper(), info.ChildInfo.FirstName.AsSpan(1))}: {info.PeriodStartDate} - {info.PeriodEndDate}"))
             )
         );
     }
@@ -205,12 +205,13 @@ internal class Program
                     })),
             new TableGrid(
                 new GridColumn { Width = new StringValue(DocumentMetrics.TableCellWidth) },
+                new GridColumn { Width = new StringValue(DocumentMetrics.TableCellWidth) },
                 new GridColumn { Width = new StringValue(DocumentMetrics.TableCellWidth) }),
             new TableRow(
                 new TableCell(
                     new TableCellProperties(
                         new TableCellWidth { Width = DocumentMetrics.TableWidth },
-                        new GridSpan{Val = new Int32Value(2)}),
+                        new GridSpan{Val = new Int32Value(3)}),
                     new Paragraph(
                         new ParagraphProperties(
                             new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Center)}),
@@ -320,7 +321,7 @@ internal class Program
             Console.WriteLine();
         } while (!inputUnit.HasValue);
 
-        return inputUnit.Value;;
+        return inputUnit.Value;
     }
 
     private static void AddUnitRow(Table table, Unit unit)
@@ -329,7 +330,7 @@ internal class Program
             new TableCell(
                 new TableCellProperties(
                     new TableCellWidth {Width = DocumentMetrics.TableWidth},
-                    new GridSpan {Val = new Int32Value(2)}),
+                    new GridSpan {Val = new Int32Value(3)}),
                 new Paragraph(
                     new ParagraphProperties(
                         new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Center)}),
@@ -347,7 +348,7 @@ internal class Program
             new TableCell(
                 new TableCellProperties(
                     new TableCellWidth {Width = DocumentMetrics.TableWidth},
-                    new GridSpan {Val = new Int32Value(2)}),
+                    new GridSpan {Val = new Int32Value(3)}),
                 new Paragraph(
                     new ParagraphProperties(
                         new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Center)}),
@@ -359,18 +360,18 @@ internal class Program
                         new Text(section.Text))))));
     }
 
-    private static string InputCriterionAnswer(Criterion criterion)
+    private static CriterionAnswers InputCriterionAnswer(Criterion criterion)
     {
-        const string criterionAnswerTemplate =
+        var criterionAnswerTemplate =
             $"""
                 Введите уровень затруднений:
-                    1 - {OutputStrings.NoDifficulties}
-                    2 - {OutputStrings.SmallDifficulties}
-                    3 - {OutputStrings.MiddleDifficulties}
-                    4 - {OutputStrings.HardDifficulties}
-                    5 - {OutputStrings.TotalDifficulties}
+                    {(int)CriterionAnswers.NoDifficulties} - {OutputStrings.NoDifficulties}
+                    {(int)CriterionAnswers.SmallDifficulties} - {OutputStrings.SmallDifficulties}
+                    {(int)CriterionAnswers.MiddleDifficulties} - {OutputStrings.MiddleDifficulties}
+                    {(int)CriterionAnswers.HardDifficulties} - {OutputStrings.HardDifficulties}
+                    {(int)CriterionAnswers.TotalDifficulties} - {OutputStrings.TotalDifficulties}
             """;
-        string criterionAnswer;
+        CriterionAnswers criterionAnswer;
         do
         {
             Console.WriteLine(OutputStrings.StartFillingPartMessage, "критертия", criterion.Text);
@@ -379,29 +380,38 @@ internal class Program
             var input = Console.ReadKey();
             criterionAnswer = input.Key switch
             {
-                ConsoleKey.D1 => OutputStrings.NoDifficulties,
-                ConsoleKey.D2 => OutputStrings.SmallDifficulties,
-                ConsoleKey.D3 => OutputStrings.MiddleDifficulties,
-                ConsoleKey.D4 => OutputStrings.HardDifficulties,
-                ConsoleKey.D5 => OutputStrings.TotalDifficulties,
+                ConsoleKey.D1 => CriterionAnswers.NoDifficulties,
+                ConsoleKey.D2 => CriterionAnswers.SmallDifficulties,
+                ConsoleKey.D3 => CriterionAnswers.MiddleDifficulties,
+                ConsoleKey.D4 => CriterionAnswers.HardDifficulties,
+                ConsoleKey.D5 => CriterionAnswers.TotalDifficulties,
                 ConsoleKey.Escape => throw new FinishFillingException(),
-                _ => null
+                _ => CriterionAnswers.Undefined
             };
-            if (criterionAnswer is null)
+            if (criterionAnswer is CriterionAnswers.Undefined)
             {
                 Console.WriteLine(OutputStrings.WrongInputMessage);
             }
-        } while (string.IsNullOrEmpty(criterionAnswer));
+        } while (criterionAnswer == CriterionAnswers.Undefined);
 
         return criterionAnswer;
     }
     
-    private static void AddCriterionRow(Table table, Criterion criterion, string criterionAnswer)
+    private static void AddCriterionRow(Table table, Criterion criterion, CriterionAnswers criterionAnswer)
     {
+        var cellProperties = new TableCellProperties(new TableCellWidth {Width = DocumentMetrics.TableCellWidth});
+        if (criterionAnswer != CriterionAnswers.MiddleDifficulties)
+        {
+            cellProperties.AppendChild(new Shading
+            {
+                Color = new StringValue("auto"),
+                Val = new EnumValue<ShadingPatternValues>(ShadingPatternValues.Clear),
+                Fill = new StringValue(ChooseShadingColor(criterionAnswer))
+            });
+        }
         table.AppendChild(new TableRow(
             new TableCell(
-                new TableCellProperties(
-                    new TableCellWidth {Width = DocumentMetrics.TableCellWidth}),
+                cellProperties,
                 new Paragraph(
                     new ParagraphProperties(
                         new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
@@ -411,8 +421,7 @@ internal class Program
                             new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
                         new Text(criterion.Text)))),
             new TableCell(
-                new TableCellProperties(
-                    new TableCellWidth {Width = DocumentMetrics.TableCellWidth}),
+                cellProperties,
                 new Paragraph(
                     new ParagraphProperties(
                         new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
@@ -420,7 +429,36 @@ internal class Program
                         new RunProperties(
                             new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
                             new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
-                        new Text(criterionAnswer))))));
+                        new Text(ChooseAnswerText(criterionAnswer))))),
+            new TableCell(
+                cellProperties,
+                new Paragraph(
+                    new ParagraphProperties(
+                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
+                    new Run(
+                        new RunProperties(
+                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
+                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}))))));
+
+        string ChooseAnswerText(CriterionAnswers answer) => answer switch
+        {
+            CriterionAnswers.NoDifficulties => OutputStrings.NoDifficulties,
+            CriterionAnswers.SmallDifficulties => OutputStrings.SmallDifficulties,
+            CriterionAnswers.MiddleDifficulties => OutputStrings.MiddleDifficulties,
+            CriterionAnswers.HardDifficulties => OutputStrings.HardDifficulties,
+            CriterionAnswers.TotalDifficulties => OutputStrings.TotalDifficulties,
+            _ => throw new ArgumentOutOfRangeException(nameof(answer), answer, null)
+        };
+        
+        string ChooseShadingColor(CriterionAnswers answer) => answer switch
+        {
+            CriterionAnswers.NoDifficulties => DocumentMetrics.TableShadingColors.Green,
+            CriterionAnswers.SmallDifficulties => DocumentMetrics.TableShadingColors.Green,
+            CriterionAnswers.MiddleDifficulties => DocumentMetrics.TableShadingColors.Yellow,
+            CriterionAnswers.HardDifficulties => DocumentMetrics.TableShadingColors.Orange,
+            CriterionAnswers.TotalDifficulties => DocumentMetrics.TableShadingColors.Red,
+            _ => throw new ArgumentOutOfRangeException(nameof(answer), answer, null)
+        };
     }
 
     private static void AddSectionProperties(Body body)
