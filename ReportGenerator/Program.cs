@@ -374,9 +374,10 @@ internal class Program
         CriterionAnswers criterionAnswer;
         do
         {
-            Console.WriteLine(OutputStrings.StartFillingPartMessage, "критертия", criterion.Text);
+            Console.WriteLine(OutputStrings.StartFillingPartMessage, "критерия", criterion.Text);
             Console.WriteLine(criterionAnswerTemplate);
             Console.WriteLine(OutputStrings.FinishOption);
+            Console.WriteLine();
             var input = Console.ReadKey();
             criterionAnswer = input.Key switch
             {
@@ -400,7 +401,7 @@ internal class Program
     private static void AddCriterionRow(Table table, Criterion criterion, CriterionAnswers criterionAnswer)
     {
         var cellProperties = new TableCellProperties(new TableCellWidth {Width = DocumentMetrics.TableCellWidth});
-        if (criterionAnswer != CriterionAnswers.MiddleDifficulties)
+        if (criterionAnswer != CriterionAnswers.NoDifficulties)
         {
             cellProperties.AppendChild(new Shading
             {
@@ -421,7 +422,7 @@ internal class Program
                             new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
                         new Text(criterion.Text)))),
             new TableCell(
-                cellProperties,
+                cellProperties.CloneNode(true),
                 new Paragraph(
                     new ParagraphProperties(
                         new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
@@ -431,7 +432,7 @@ internal class Program
                             new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
                         new Text(ChooseAnswerText(criterionAnswer))))),
             new TableCell(
-                cellProperties,
+                cellProperties.CloneNode(true),
                 new Paragraph(
                     new ParagraphProperties(
                         new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
