@@ -7,5 +7,6 @@ public enum CriterionAnswers
     SmallDifficulties = 2,
     MiddleDifficulties = 3,
     HardDifficulties = 4,
-    TotalDifficulties = 5
+    TotalDifficulties = 5,
+    Skip = 10
 }

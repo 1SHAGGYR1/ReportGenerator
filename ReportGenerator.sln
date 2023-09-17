@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportGenerator", "ReportGe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{1D778EB3-1CA5-4353-A790-EB7CEAB8934C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExistingReportFiller", "ExistingReportFiller\ExistingReportFiller.csproj", "{AD8D48EA-D468-421A-9A2D-991597BE71DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{1D778EB3-1CA5-4353-A790-EB7CEAB8934C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D778EB3-1CA5-4353-A790-EB7CEAB8934C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D778EB3-1CA5-4353-A790-EB7CEAB8934C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD8D48EA-D468-421A-9A2D-991597BE71DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD8D48EA-D468-421A-9A2D-991597BE71DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD8D48EA-D468-421A-9A2D-991597BE71DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD8D48EA-D468-421A-9A2D-991597BE71DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

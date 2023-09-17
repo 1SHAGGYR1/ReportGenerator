@@ -9,8 +9,9 @@ public static class OutputStrings
     public const string TotalDifficulties = "АБСОЛЮТНЫЕ затруднения (полные,…) 96-100%";
 
     public const string WrongInputMessage = "Выбран неподходящий вариант ответа";
-    public const string StartFillingPartMessage = "Переходим к заполнению {0}: {1}";
+    public const string StartFillingPartMessage = "Приступаем к заполнению {0}: {1}";
 
-    public const string SkipOption = "Для пропуска {0} нажмите 0, для ввода: ENTER";
-    public const string FinishOption = "Для завершения заполнения нажмите ESC";
+    public const string SkipOption = "Для пропуска {0} нажмите 0";
+    public const string ContinueOption = "Для для ввода {0} нажмите ENTER";
+    public const string FinishOption = "Для сохрнанения и завершения заполнения нажмите ESC";
 }

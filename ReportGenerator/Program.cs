@@ -247,27 +247,23 @@ internal class Program
         {
             foreach (var unit in unitList)
             {
-                if (!InputUnit(unit)) continue;
+                if (!InputPart("раздела", unit.Text)) continue;
                 AddUnitRow(table, unit);
 
                 foreach (var section in unit.SectionList)
                 {
-                    if (!InputSection(section)) continue;
+                    if (!InputPart("секции", section.Text)) continue;
                     AddSectionRow(table, section);
 
                     foreach (var criterion in section.CriterionList)
                     {
-                        var criterionAnswer = InputCriterionAnswer(criterion);
-                        Console.WriteLine();
-                        AddCriterionRow(table, criterion, criterionAnswer);
+                        ProcessCriterion(table, criterion);
                     }
                 }
 
                 foreach (var unSectionedCriterion in unit.UnSectionedCriterionList)
                 {
-                    var criterionAnswer = InputCriterionAnswer(unSectionedCriterion);
-                    Console.WriteLine();
-                    AddCriterionRow(table, unSectionedCriterion, criterionAnswer);
+                    ProcessCriterion(table, unSectionedCriterion);
                 }
             }
         }
@@ -280,50 +276,6 @@ internal class Program
         }
     }
     
-    private static bool InputUnit(Unit unit)
-    {
-        Console.WriteLine(OutputStrings.StartFillingPartMessage, "раздела", unit.Text);
-        bool? inputUnit;
-        do
-        {
-            Console.WriteLine(OutputStrings.SkipOption, "раздела");
-            Console.WriteLine(OutputStrings.FinishOption);
-            var input = Console.ReadKey();
-            inputUnit = input.Key switch
-            {
-                ConsoleKey.D0 => false,
-                ConsoleKey.Enter => true,
-                ConsoleKey.Escape => throw new FinishFillingException(),
-                _ => null
-            };
-            Console.WriteLine();
-        } while (!inputUnit.HasValue);
-
-        return inputUnit.Value;
-    }
-
-    private static bool InputSection(Section section)
-    {
-        Console.WriteLine(OutputStrings.StartFillingPartMessage, "секции", section.Text);
-        bool? inputUnit;
-        do
-        {
-            Console.WriteLine(OutputStrings.SkipOption, "секции");
-            Console.WriteLine(OutputStrings.FinishOption);
-            var input = Console.ReadKey();
-            inputUnit = input.Key switch
-            {
-                ConsoleKey.D0 => false,
-                ConsoleKey.Enter => true,
-                ConsoleKey.Escape => throw new FinishFillingException(),
-                _ => null
-            };
-            Console.WriteLine();
-        } while (!inputUnit.HasValue);
-
-        return inputUnit.Value;
-    }
-
     private static void AddUnitRow(Table table, Unit unit)
     {
         table.AppendChild(
@@ -376,27 +328,71 @@ internal class Program
                                     new Text(section.Text))))))
             ));
     }
+    
+    private static void ProcessCriterion(Table table, Criterion criterion)
+    {
+        var criterionAnswer = InputCriterionAnswer(criterion);
+        if (criterionAnswer == CriterionAnswers.Skip)
+        {
+            return;
+        }
+        
+        AddCriterionRow(table, criterion, criterionAnswer);
+
+        if (criterion.Inner is not null)
+        {
+            foreach (var innerCriterion in criterion.Inner.Values)
+            {
+                ProcessCriterion(table, innerCriterion);
+            }
+        }
+    }
+    
+    private static bool InputPart(string partName, string partText)
+    {
+        Console.WriteLine(OutputStrings.StartFillingPartMessage, partName, partText);
+        bool? inputUnit;
+        do
+        {
+            Console.WriteLine(OutputStrings.SkipOption, partName);
+            Console.WriteLine(OutputStrings.ContinueOption, partName);
+            Console.WriteLine(OutputStrings.FinishOption);
+            var input = Console.ReadKey();
+            inputUnit = input.Key switch
+            {
+                ConsoleKey.D0 => false,
+                ConsoleKey.Enter => true,
+                ConsoleKey.Escape => throw new FinishFillingException(),
+                _ => null
+            };
+            Console.WriteLine();
+        } while (!inputUnit.HasValue);
+
+        return inputUnit.Value;
+    }
 
     private static CriterionAnswers InputCriterionAnswer(Criterion criterion)
     {
         var criterionAnswerTemplate =
             $"""
-                Введите уровень затруднений:
-                    {(int)CriterionAnswers.NoDifficulties} - {OutputStrings.NoDifficulties}
-                    {(int)CriterionAnswers.SmallDifficulties} - {OutputStrings.SmallDifficulties}
-                    {(int)CriterionAnswers.MiddleDifficulties} - {OutputStrings.MiddleDifficulties}
-                    {(int)CriterionAnswers.HardDifficulties} - {OutputStrings.HardDifficulties}
-                    {(int)CriterionAnswers.TotalDifficulties} - {OutputStrings.TotalDifficulties}
+            Для заполнения критерия введите уровень затруднений:
+                {(int)CriterionAnswers.NoDifficulties} - {OutputStrings.NoDifficulties}
+                {(int)CriterionAnswers.SmallDifficulties} - {OutputStrings.SmallDifficulties}
+                {(int)CriterionAnswers.MiddleDifficulties} - {OutputStrings.MiddleDifficulties}
+                {(int)CriterionAnswers.HardDifficulties} - {OutputStrings.HardDifficulties}
+                {(int)CriterionAnswers.TotalDifficulties} - {OutputStrings.TotalDifficulties}
             """;
         CriterionAnswers criterionAnswer;
         do
         {
             Console.WriteLine(OutputStrings.StartFillingPartMessage, "критерия", criterion.Text);
-            Console.WriteLine(criterionAnswerTemplate);
+            Console.WriteLine(OutputStrings.SkipOption, "критерия");
             Console.WriteLine(OutputStrings.FinishOption);
+            Console.WriteLine(criterionAnswerTemplate);
             var input = Console.ReadKey();
             criterionAnswer = input.Key switch
             {
+                ConsoleKey.D0 => CriterionAnswers.Skip,
                 ConsoleKey.D1 => CriterionAnswers.NoDifficulties,
                 ConsoleKey.D2 => CriterionAnswers.SmallDifficulties,
                 ConsoleKey.D3 => CriterionAnswers.MiddleDifficulties,
@@ -410,6 +406,8 @@ internal class Program
                 Console.WriteLine(OutputStrings.WrongInputMessage);
             }
         } while (criterionAnswer == CriterionAnswers.Undefined);
+
+        Console.WriteLine();
 
         return criterionAnswer;
     }
