@@ -326,38 +326,55 @@ internal class Program
 
     private static void AddUnitRow(Table table, Unit unit)
     {
-        table.AppendChild(new TableRow(
-            new TableCell(
-                new TableCellProperties(
-                    new TableCellWidth {Width = DocumentMetrics.TableWidth},
-                    new GridSpan {Val = new Int32Value(3)}),
-                new Paragraph(
-                    new ParagraphProperties(
-                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Center)}),
-                    new Run(
-                        new RunProperties(
-                            new Bold(),
-                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.UnitFontSize)},
-                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.UnitFontSize)}),
-                        new Text(unit.Text))))));
+        table.AppendChild(
+            new SdtRow(
+                new SdtProperties(
+                    new SdtAlias {Val = new StringValue(nameof(Unit))},
+                    new SdtId {Val = new Int32Value(unit.Digit)}),
+                new SdtContentRow(
+                    new TableRow(
+                        new TableCell(
+                            new TableCellProperties(
+                                new TableCellWidth {Width = DocumentMetrics.TableWidth},
+                                new GridSpan {Val = new Int32Value(3)}),
+                            new Paragraph(
+                                new ParagraphProperties(
+                                    new Justification
+                                        {Val = new EnumValue<JustificationValues>(JustificationValues.Center)}),
+                                new Run(
+                                    new RunProperties(
+                                        new Bold(),
+                                        new FontSize {Val = new StringValue(DocumentMetrics.Fonts.UnitFontSize)},
+                                        new FontSizeComplexScript
+                                            {Val = new StringValue(DocumentMetrics.Fonts.UnitFontSize)}),
+                                    new Text(unit.Text))))))));
     }
 
     private static void AddSectionRow(Table table, Section section)
     {
-        table.AppendChild(new TableRow(
-            new TableCell(
-                new TableCellProperties(
-                    new TableCellWidth {Width = DocumentMetrics.TableWidth},
-                    new GridSpan {Val = new Int32Value(3)}),
-                new Paragraph(
-                    new ParagraphProperties(
-                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Center)}),
-                    new Run(
-                        new RunProperties(
-                            new Italic(),
-                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.SectionFontSize)},
-                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.SectionFontSize)}),
-                        new Text(section.Text))))));
+        table.AppendChild(
+            new SdtRow(
+                new SdtProperties(
+                    new SdtAlias {Val = new StringValue(nameof(Section))},
+                    new SdtId {Val = new Int32Value(section.StartCriterionKey)}),
+                new SdtContentRow(
+                    new TableRow(
+                        new TableCell(
+                            new TableCellProperties(
+                                new TableCellWidth {Width = DocumentMetrics.TableWidth},
+                                new GridSpan {Val = new Int32Value(3)}),
+                            new Paragraph(
+                                new ParagraphProperties(
+                                    new Justification
+                                        {Val = new EnumValue<JustificationValues>(JustificationValues.Center)}),
+                                new Run(
+                                    new RunProperties(
+                                        new Italic(),
+                                        new FontSize {Val = new StringValue(DocumentMetrics.Fonts.SectionFontSize)},
+                                        new FontSizeComplexScript
+                                            {Val = new StringValue(DocumentMetrics.Fonts.SectionFontSize)}),
+                                    new Text(section.Text))))))
+            ));
     }
 
     private static CriterionAnswers InputCriterionAnswer(Criterion criterion)
@@ -377,7 +394,6 @@ internal class Program
             Console.WriteLine(OutputStrings.StartFillingPartMessage, "критерия", criterion.Text);
             Console.WriteLine(criterionAnswerTemplate);
             Console.WriteLine(OutputStrings.FinishOption);
-            Console.WriteLine();
             var input = Console.ReadKey();
             criterionAnswer = input.Key switch
             {
@@ -397,7 +413,7 @@ internal class Program
 
         return criterionAnswer;
     }
-    
+
     private static void AddCriterionRow(Table table, Criterion criterion, CriterionAnswers criterionAnswer)
     {
         var cellProperties = new TableCellProperties(new TableCellWidth {Width = DocumentMetrics.TableCellWidth});
@@ -410,36 +426,46 @@ internal class Program
                 Fill = new StringValue(ChooseShadingColor(criterionAnswer))
             });
         }
-        table.AppendChild(new TableRow(
-            new TableCell(
-                cellProperties,
-                new Paragraph(
-                    new ParagraphProperties(
-                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
-                    new Run(
-                        new RunProperties(
-                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
-                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
-                        new Text(criterion.Text)))),
-            new TableCell(
-                cellProperties.CloneNode(true),
-                new Paragraph(
-                    new ParagraphProperties(
-                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
-                    new Run(
-                        new RunProperties(
-                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
-                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
-                        new Text(ChooseAnswerText(criterionAnswer))))),
-            new TableCell(
-                cellProperties.CloneNode(true),
-                new Paragraph(
-                    new ParagraphProperties(
-                        new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
-                    new Run(
-                        new RunProperties(
-                            new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
-                            new FontSizeComplexScript {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}))))));
+
+        table.AppendChild(
+            new SdtRow(
+                new SdtProperties(
+                    new SdtAlias {Val = new StringValue(nameof(Criterion))},
+                    new SdtId {Val = new Int32Value(criterion.Key)}),
+                new SdtContentRow(new TableRow(
+                    new TableCell(
+                        cellProperties,
+                        new Paragraph(
+                            new ParagraphProperties(
+                                new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
+                            new Run(
+                                new RunProperties(
+                                    new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
+                                    new FontSizeComplexScript
+                                        {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
+                                new Text(criterion.Text)))),
+                    new TableCell(
+                        cellProperties.CloneNode(true),
+                        new Paragraph(
+                            new ParagraphProperties(
+                                new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
+                            new Run(
+                                new RunProperties(
+                                    new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
+                                    new FontSizeComplexScript
+                                        {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}),
+                                new Text(ChooseAnswerText(criterionAnswer))))),
+                    new TableCell(
+                        cellProperties.CloneNode(true),
+                        new Paragraph(
+                            new ParagraphProperties(
+                                new Justification {Val = new EnumValue<JustificationValues>(JustificationValues.Left)}),
+                            new Run(
+                                new RunProperties(
+                                    new FontSize {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)},
+                                    new FontSizeComplexScript
+                                        {Val = new StringValue(DocumentMetrics.Fonts.CriterionFontSize)}))))))
+            ));
 
         string ChooseAnswerText(CriterionAnswers answer) => answer switch
         {
@@ -450,7 +476,7 @@ internal class Program
             CriterionAnswers.TotalDifficulties => OutputStrings.TotalDifficulties,
             _ => throw new ArgumentOutOfRangeException(nameof(answer), answer, null)
         };
-        
+
         string ChooseShadingColor(CriterionAnswers answer) => answer switch
         {
             CriterionAnswers.NoDifficulties => DocumentMetrics.TableShadingColors.Green,
