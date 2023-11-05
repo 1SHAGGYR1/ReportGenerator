@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExistingReportFiller", "ExistingReportFiller\ExistingReportFiller.csproj", "{AD8D48EA-D468-421A-9A2D-991597BE71DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportsApplication", "ReportsApplication\ReportsApplication.csproj", "{A5890530-6A64-4780-98F4-3AF94699D184}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{AD8D48EA-D468-421A-9A2D-991597BE71DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD8D48EA-D468-421A-9A2D-991597BE71DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD8D48EA-D468-421A-9A2D-991597BE71DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5890530-6A64-4780-98F4-3AF94699D184}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5890530-6A64-4780-98F4-3AF94699D184}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5890530-6A64-4780-98F4-3AF94699D184}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5890530-6A64-4780-98F4-3AF94699D184}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -20,14 +20,19 @@ internal class Program
         {
             foreach (var argument in args)
             {
-                switch (argument)
+                var split = argument.Split('=');
+
+                if (split.Length == 2)
                 {
-                    case "unitsFilePath":
-                        unitsFilePath = argument;
-                        break;
-                    case "outputFileDirectory":
-                        outputFileDirectory = argument;
-                        break;
+                    switch (split[0])
+                    {
+                        case "unitsFilePath":
+                            unitsFilePath = split[1];
+                            break;
+                            case "outputFileDirectory":
+                            outputFileDirectory = split[1];
+                            break;
+                    }
                 }
             }
         }
